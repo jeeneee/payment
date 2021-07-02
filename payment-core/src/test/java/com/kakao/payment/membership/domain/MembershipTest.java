@@ -2,9 +2,12 @@ package com.kakao.payment.membership.domain;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.kakao.payment.common.exception.IllegalParameterException;
+import com.kakao.payment.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,27 +15,34 @@ import org.junit.jupiter.api.Test;
 class MembershipTest {
 
     private Membership membership;
+    private User owner;
 
     @BeforeEach
     void setUp() {
+        owner = User.builder()
+            .id(1L)
+            .uid("test1")
+            .build();
+
         membership = Membership.builder()
+            .id(1L)
             .uid("spc")
-            .owner("test1")
             .name(Name.SPC)
             .status(Status.Y)
             .point(120)
+            .owner(owner)
             .build();
     }
 
     @DisplayName("멤버십 생성")
     @Test
-    void builder_Satisfied_Success() {
+    void builder_Membership_Success() {
         Membership created = Membership.builder()
             .uid("spc")
-            .owner("test1")
             .name(Name.SPC)
             .status(Status.Y)
             .point(120)
+            .owner(owner)
             .build();
 
         assertAll(
@@ -49,10 +59,47 @@ class MembershipTest {
     void builder_WithoutUid_ExceptionThrown() {
         assertThrows(IllegalParameterException.class,
             () -> Membership.builder()
-                .owner("test1")
                 .name(Name.SPC)
                 .status(Status.Y)
                 .point(120)
+                .owner(owner)
+                .build());
+    }
+
+    @DisplayName("멤버십 생성 - 멤버십 이름이 없으면 예외 발생")
+    @Test
+    void builder_WithoutName_ExceptionThrown() {
+        assertThrows(IllegalParameterException.class,
+            () -> Membership.builder()
+                .uid("spc")
+                .status(Status.Y)
+                .point(120)
+                .owner(owner)
+                .build());
+    }
+
+    @DisplayName("멤버십 생성 - 멤버십 활성 상태가 없으면 예외 발생")
+    @Test
+    void builder_WithoutStatus_ExceptionThrown() {
+        assertThrows(IllegalParameterException.class,
+            () -> Membership.builder()
+                .uid("spc")
+                .name(Name.SPC)
+                .point(120)
+                .owner(owner)
+                .build());
+    }
+
+    @DisplayName("멤버십 생성 - 멤버십 포인트가 음수이면 예외 발생")
+    @Test
+    void builder_PointLessThanZero_ExceptionThrown() {
+        assertThrows(IllegalParameterException.class,
+            () -> Membership.builder()
+                .uid("spc")
+                .name(Name.SPC)
+                .status(Status.Y)
+                .point(-120)
+                .owner(owner)
                 .build());
     }
 
@@ -68,46 +115,9 @@ class MembershipTest {
                 .build());
     }
 
-    @DisplayName("멤버십 생성 - 멤버십 이름이 없으면 예외 발생")
-    @Test
-    void builder_WithoutName_ExceptionThrown() {
-        assertThrows(IllegalParameterException.class,
-            () -> Membership.builder()
-                .uid("spc")
-                .owner("test1")
-                .status(Status.Y)
-                .point(120)
-                .build());
-    }
-
-    @DisplayName("멤버십 생성 - 멤버십 활성 상태가 없으면 예외 발생")
-    @Test
-    void builder_WithoutStatus_ExceptionThrown() {
-        assertThrows(IllegalParameterException.class,
-            () -> Membership.builder()
-                .uid("spc")
-                .owner("test1")
-                .name(Name.SPC)
-                .point(120)
-                .build());
-    }
-
-    @DisplayName("멤버십 생성 - 멤버십 포인트가 음수이면 예외 발생")
-    @Test
-    void builder_PointLessThanZero_ExceptionThrown() {
-        assertThrows(IllegalParameterException.class,
-            () -> Membership.builder()
-                .uid("spc")
-                .owner("test1")
-                .name(Name.SPC)
-                .status(Status.Y)
-                .point(-120)
-                .build());
-    }
-
     @DisplayName("멤버십 비활성화")
     @Test
-    void deactivate_Satisfied_Success() {
+    void deactivate_Membership_Success() {
         assertEquals(Status.Y, membership.getStatus());
 
         membership.deactivate();

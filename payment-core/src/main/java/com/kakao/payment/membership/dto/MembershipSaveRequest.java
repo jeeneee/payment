@@ -3,6 +3,7 @@ package com.kakao.payment.membership.dto;
 import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.Name;
 import com.kakao.payment.membership.domain.Status;
+import com.kakao.payment.user.domain.User;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
@@ -26,7 +27,7 @@ public class MembershipSaveRequest {
     @PositiveOrZero(message = "point must be provided and positive number.")
     private Integer point;
 
-    public Membership toEntity(String owner) {
+    public Membership toEntity(User owner) {
         return Membership.builder()
             .uid(membershipId)
             .owner(owner)

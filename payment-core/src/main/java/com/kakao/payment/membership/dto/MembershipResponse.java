@@ -33,7 +33,7 @@ public class MembershipResponse {
         return MembershipResponse.builder()
             .seq(seq)
             .membershipId(membership.getUid())
-            .userId(membership.getOwner())
+            .userId(membership.getOwner().getUid())
             .membershipName(membership.getName().getValue())
             .startDate(membership.getCreatedDate())
             .membershipStatus(membership.getStatus())

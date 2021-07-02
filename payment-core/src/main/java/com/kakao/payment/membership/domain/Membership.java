@@ -1,7 +1,10 @@
 package com.kakao.payment.membership.domain;
 
+import static javax.persistence.FetchType.LAZY;
+
 import com.kakao.payment.common.BaseTimeEntity;
 import com.kakao.payment.common.exception.IllegalParameterException;
+import com.kakao.payment.user.domain.User;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -9,6 +12,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,11 +28,8 @@ public class Membership extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String uid;
-
-    @Column(nullable = false)
-    private String owner;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -40,18 +41,21 @@ public class Membership extends BaseTimeEntity {
 
     private int point;
 
+    @ManyToOne(fetch = LAZY)
+    private User owner;
+
     @Builder
-    private Membership(Long id, String uid, String owner, Name name, Status status, int point) {
-        validateParams(uid, owner, name, status, point);
+    private Membership(Long id, String uid, Name name, Status status, int point, User owner) {
+        validateParams(uid, name, status, point, owner);
         this.id = id;
         this.uid = uid;
-        this.owner = owner;
         this.name = name;
         this.status = status;
         this.point = point;
+        this.owner = owner;
     }
 
-    private void validateParams(String uid, String owner, Name name, Status status, int point) {
+    private void validateParams(String uid, Name name, Status status, int point, User owner) {
         if (ObjectUtils.anyNull(uid, owner, name, status) || point < 0) {
             throw new IllegalParameterException();
         }
