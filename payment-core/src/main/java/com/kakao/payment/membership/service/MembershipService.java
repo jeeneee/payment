@@ -3,6 +3,8 @@ package com.kakao.payment.membership.service;
 import com.kakao.payment.common.exception.PrincipalException;
 import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.MembershipRepository;
+import com.kakao.payment.membership.domain.Name;
+import com.kakao.payment.membership.dto.MembershipResponse;
 import com.kakao.payment.membership.dto.MembershipSaveRequest;
 import com.kakao.payment.membership.dto.MembershipUpdateRequest;
 import com.kakao.payment.membership.exception.DuplicatedMembershipException;
@@ -10,6 +12,8 @@ import com.kakao.payment.membership.exception.MembershipNotFoundException;
 import com.kakao.payment.user.domain.User;
 import com.kakao.payment.user.service.UserService;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,24 +26,33 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final UserService userService;
 
-    public List<Membership> findAllByOwner(String ownerUid) {
-        User owner = userService.findOne(ownerUid);
-        return membershipRepository.findAllByOwner(owner);
+    public MembershipResponse findOne(String uid, String ownerUid) {
+        Membership membership = getMembership(uid);
+        verifyOwner(membership, ownerUid);
+        return MembershipResponse.from(1, membership);
+    }
+
+    public List<MembershipResponse> findAll(String ownerUid) {
+        User owner = userService.getUser(ownerUid);
+        List<Membership> memberships = owner.getMemberships();
+        return IntStream.range(0, memberships.size())
+            .mapToObj(i -> MembershipResponse.from(i + 1, memberships.get(i)))
+            .collect(Collectors.toList());
     }
 
     @Transactional
-    public Membership save(MembershipSaveRequest request, String ownerUid) {
-        if (membershipRepository.existsByUid(request.getMembershipId())) {
-            throw new DuplicatedMembershipException("The membership id already exists");
-        }
-
-        User owner = userService.findOrSave(ownerUid);
-        return membershipRepository.save(request.toEntity(owner));
+    public MembershipResponse save(MembershipSaveRequest request, String ownerUid) {
+        validateMembershipId(request.getUid());
+        User owner = userService.findUser(ownerUid).orElseGet(() -> userService.save(ownerUid));
+        validateMembershipName(owner, request.getName());
+        Membership membership = request.toEntity(owner);
+        membershipRepository.save(membership);
+        return MembershipResponse.from(1, membership);
     }
 
     @Transactional
     public boolean deactivate(String membershipUid, String ownerUid) {
-        Membership membership = findOne(membershipUid);
+        Membership membership = getMembership(membershipUid);
         verifyOwner(membership, ownerUid);
         membership.deactivate();
         return true;
@@ -47,15 +60,27 @@ public class MembershipService {
 
     @Transactional
     public boolean spend(MembershipUpdateRequest request, String ownerUid) {
-        Membership membership = findOne(request.getMembershipId());
+        Membership membership = getMembership(request.getUid());
         verifyOwner(membership, ownerUid);
         membership.spend(request.getAmount());
         return true;
     }
 
-    public Membership findOne(String uid) {
+    private Membership getMembership(String uid) {
         return membershipRepository.findByUid(uid)
             .orElseThrow(() -> new MembershipNotFoundException("The membership does not exist."));
+    }
+
+    private void validateMembershipId(String uid) {
+        if (membershipRepository.existsByUid(uid)) {
+            throw new DuplicatedMembershipException("The membership id already exists.");
+        }
+    }
+
+    private void validateMembershipName(User owner, Name name) {
+        if (owner.hasSameMembership(name)) {
+            throw new DuplicatedMembershipException("The membership name already exists.");
+        }
     }
 
     private void verifyOwner(Membership membership, String ownerUid) {

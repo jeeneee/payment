@@ -1,5 +1,6 @@
 package com.kakao.payment.membership.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
@@ -15,7 +16,8 @@ import lombok.NoArgsConstructor;
 public class MembershipUpdateRequest {
 
     @NotBlank(message = "membership_id must be provided")
-    private String membershipId;
+    @JsonProperty("membershipId")
+    private String uid;
 
     @PositiveOrZero(message = "point must be provided and positive number.")
     private Integer amount;

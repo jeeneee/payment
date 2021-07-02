@@ -1,5 +1,6 @@
 package com.kakao.payment.membership.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.Name;
 import com.kakao.payment.membership.domain.Status;
@@ -19,21 +20,27 @@ import lombok.NoArgsConstructor;
 public class MembershipSaveRequest {
 
     @NotBlank(message = "membership_id must be provided")
-    private String membershipId;
+    @JsonProperty("membershipId")
+    private String uid;
 
     @NotBlank(message = "membership_id must be provided")
-    private String membershipName;
+    @JsonProperty("membershipName")
+    private String name;
 
     @PositiveOrZero(message = "point must be provided and positive number.")
     private Integer point;
 
     public Membership toEntity(User owner) {
         return Membership.builder()
-            .uid(membershipId)
+            .uid(uid)
             .owner(owner)
-            .name(Name.find(membershipName))
+            .name(getName())
             .status(Status.Y)
             .point(point)
             .build();
+    }
+
+    public Name getName() {
+        return Name.find(this.name);
     }
 }

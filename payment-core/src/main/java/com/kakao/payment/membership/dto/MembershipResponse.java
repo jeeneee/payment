@@ -1,5 +1,6 @@
 package com.kakao.payment.membership.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.Status;
 import java.time.LocalDateTime;
@@ -17,26 +18,30 @@ public class MembershipResponse {
 
     private int seq;
 
-    private String membershipId;
+    @JsonProperty("membershipId")
+    private String uid;
 
-    private String userId;
+    @JsonProperty("userId")
+    private String ownerUid;
 
-    private String membershipName;
+    @JsonProperty("membershipName")
+    private String name;
 
     private LocalDateTime startDate;
 
-    private Status membershipStatus;
+    @JsonProperty("membershipStatus")
+    private Status status;
 
     private int point;
 
     public static MembershipResponse from(int seq, Membership membership) {
         return MembershipResponse.builder()
             .seq(seq)
-            .membershipId(membership.getUid())
-            .userId(membership.getOwner().getUid())
-            .membershipName(membership.getName().getValue())
+            .uid(membership.getUid())
+            .ownerUid(membership.getOwner().getUid())
+            .name(membership.getName().getValue())
             .startDate(membership.getCreatedDate())
-            .membershipStatus(membership.getStatus())
+            .status(membership.getStatus())
             .point(membership.getPoint())
             .build();
     }

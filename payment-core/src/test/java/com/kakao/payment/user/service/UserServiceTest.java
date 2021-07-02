@@ -2,11 +2,13 @@ package com.kakao.payment.user.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 
 import com.kakao.payment.user.domain.User;
 import com.kakao.payment.user.domain.UserRepository;
+import com.kakao.payment.user.exception.UserNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,14 +52,14 @@ class UserServiceTest {
         );
     }
 
-    @DisplayName("유저 조회 또는 생성 - 유저가 이미 등록된 경우 조회한다.")
+    @DisplayName("유저 조회")
     @Test
-    void findOrSave_SavedUser_FindUserSuccess() {
+    void findOne_SavedUser_FindUserSuccess() {
         // given
         given(userRepository.findByUid(any())).willReturn(Optional.of(user));
 
         // when
-        User found = userService.findOrSave(user.getUid());
+        User found = userService.getUser(user.getUid());
 
         // then
         assertAll(
@@ -66,20 +68,11 @@ class UserServiceTest {
         );
     }
 
-    @DisplayName("유저 조회 또는 생성 - 유저가 등록되지 않은 경우 생성한다.")
+    @DisplayName("유저 조회 - 유저가 등록되지 않은 경우 예외가 발생한다.")
     @Test
-    void findOrSave_UnSavedUser_SaveUserSuccess() {
-        // given
+    void findOne_UnSavedUser_ExceptionThrown() {
         given(userRepository.findByUid(any())).willReturn(Optional.empty());
-        given(userRepository.save(any(User.class))).willReturn(user);
 
-        // when
-        User saved = userService.findOrSave(user.getUid());
-
-        // then
-        assertAll(
-            () -> assertEquals(user.getId(), saved.getId()),
-            () -> assertEquals(user.getUid(), saved.getUid())
-        );
+        assertThrows(UserNotFoundException.class, () -> userService.getUser(user.getUid()));
     }
 }

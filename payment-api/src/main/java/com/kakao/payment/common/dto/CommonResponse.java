@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor
 public class CommonResponse {
 
     private boolean success;

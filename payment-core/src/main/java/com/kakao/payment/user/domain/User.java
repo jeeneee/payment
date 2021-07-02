@@ -2,9 +2,10 @@ package com.kakao.payment.user.domain;
 
 import static javax.persistence.CascadeType.ALL;
 
-import com.kakao.payment.common.BaseTimeEntity;
+import com.kakao.payment.common.domain.BaseTimeEntity;
 import com.kakao.payment.common.exception.IllegalParameterException;
 import com.kakao.payment.membership.domain.Membership;
+import com.kakao.payment.membership.domain.Name;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
@@ -45,5 +46,9 @@ public class User extends BaseTimeEntity {
         if (StringUtils.isEmpty(uid)) {
             throw new IllegalParameterException();
         }
+    }
+
+    public boolean hasSameMembership(Name name) {
+        return this.memberships.stream().anyMatch(membership -> membership.getName().equals(name));
     }
 }

@@ -12,6 +12,7 @@ import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.MembershipRepository;
 import com.kakao.payment.membership.domain.Name;
 import com.kakao.payment.membership.domain.Status;
+import com.kakao.payment.membership.dto.MembershipResponse;
 import com.kakao.payment.membership.dto.MembershipSaveRequest;
 import com.kakao.payment.membership.dto.MembershipUpdateRequest;
 import com.kakao.payment.membership.exception.DuplicatedMembershipException;
@@ -39,6 +40,7 @@ class MembershipServiceTest {
     private UserService userService;
 
     private Membership membership;
+    private Membership membership2;
     private User owner;
 
     @BeforeEach
@@ -57,6 +59,14 @@ class MembershipServiceTest {
             .point(5210)
             .owner(owner)
             .build();
+        membership2 = Membership.builder()
+            .id(2L)
+            .uid("cj2")
+            .name(membership.getName())
+            .status(Status.Y)
+            .owner(owner)
+            .point(100)
+            .build();
     }
 
     @DisplayName("멤버십 전체 조회")
@@ -64,21 +74,21 @@ class MembershipServiceTest {
     void findAllByOwner_MembershipsExist_Success() {
         // given
         List<Membership> memberships = Lists.list(membership);
-        given(userService.findOne(owner.getUid())).willReturn(owner);
-        given(membershipRepository.findAllByOwner(owner)).willReturn(memberships);
+        given(userService.getUser(any())).willReturn(owner);
+        given(membershipRepository.findAllByOwner(any())).willReturn(memberships);
 
         // when
-        List<Membership> foundList = membershipService.findAllByOwner(owner.getUid());
+        List<MembershipResponse> responses = membershipService.findAll(owner.getUid());
 
         // then
-        Membership found = foundList.get(0);
+        MembershipResponse response = responses.get(0);
         assertAll(
-            () -> assertEquals(membership.getId(), found.getId()),
-            () -> assertEquals(membership.getUid(), found.getUid()),
-            () -> assertEquals(membership.getName(), found.getName()),
-            () -> assertEquals(membership.getStatus(), found.getStatus()),
-            () -> assertEquals(membership.getPoint(), found.getPoint()),
-            () -> assertEquals(membership.getOwner(), found.getOwner())
+            () -> assertEquals(1, response.getSeq()),
+            () -> assertEquals(membership.getUid(), response.getUid()),
+            () -> assertEquals(membership.getName().getValue(), response.getName()),
+            () -> assertEquals(membership.getStatus(), response.getStatus()),
+            () -> assertEquals(membership.getPoint(), response.getPoint()),
+            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
         );
     }
 
@@ -87,37 +97,54 @@ class MembershipServiceTest {
     void save_MembershipNoExists_Success() {
         // given
         MembershipSaveRequest request = MembershipSaveRequest.builder()
-            .membershipId(membership.getUid())
-            .membershipName(membership.getName().getValue())
+            .uid(membership.getUid())
+            .name(membership.getName().getValue())
             .point(membership.getPoint())
             .build();
-        given(membershipRepository.existsByUid(membership.getUid())).willReturn(false);
-        given(userService.findOrSave(any())).willReturn(owner);
+        given(membershipRepository.existsByUid(any())).willReturn(false);
+        given(userService.getUser(any())).willReturn(owner);
+        given(membershipRepository.findAllByOwner(any())).willReturn(owner.getMemberships());
         given(membershipRepository.save(any(Membership.class))).willReturn(membership);
 
         // when
-        Membership saved = membershipService.save(request, owner.getUid());
+        MembershipResponse response = membershipService.save(request, owner.getUid());
 
         // then
         assertAll(
-            () -> assertEquals(membership.getId(), saved.getId()),
-            () -> assertEquals(membership.getUid(), saved.getUid()),
-            () -> assertEquals(membership.getName(), saved.getName()),
-            () -> assertEquals(membership.getStatus(), saved.getStatus()),
-            () -> assertEquals(membership.getPoint(), saved.getPoint()),
-            () -> assertEquals(membership.getOwner(), saved.getOwner())
+            () -> assertEquals(1, response.getSeq()),
+            () -> assertEquals(membership.getUid(), response.getUid()),
+            () -> assertEquals(membership.getName().getValue(), response.getName()),
+            () -> assertEquals(membership.getStatus(), response.getStatus()),
+            () -> assertEquals(membership.getPoint(), response.getPoint()),
+            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
         );
     }
 
-    @DisplayName("멤버십 등록하기 - 해당 멤버십이 이미 존재하면 예외가 발생한다.")
+    @DisplayName("멤버십 등록하기 - 해당 멤버십 아이디가 이미 존재하면 예외가 발생한다.")
     @Test
-    void save_MembershipAlreadyExists_ExceptionThrown() {
+    void save_MembershipIdAlreadyExists_ExceptionThrown() {
         MembershipSaveRequest request = MembershipSaveRequest.builder()
-            .membershipId(membership.getUid())
-            .membershipName(membership.getName().getValue())
+            .uid(membership.getUid())
+            .name(membership.getName().getValue())
             .point(membership.getPoint())
             .build();
-        given(membershipRepository.existsByUid(membership.getUid())).willReturn(true);
+        given(membershipRepository.existsByUid(any())).willReturn(true);
+
+        assertThrows(DuplicatedMembershipException.class,
+            () -> membershipService.save(request, owner.getUid()));
+    }
+
+    @DisplayName("멤버십 등록하기 - 같은 종류의 멤버십을 이미 소유하고 있으면 예외가 발생한다.")
+    @Test
+    void save_OwnerHadSameNameMembership_ExceptionThrown() {
+        MembershipSaveRequest request = MembershipSaveRequest.builder()
+            .uid(membership.getUid())
+            .name(membership.getName().getValue())
+            .point(membership.getPoint())
+            .build();
+        owner.getMemberships().add(membership2);
+        given(membershipRepository.existsByUid(any())).willReturn(false);
+        given(membershipRepository.findAllByOwner(any())).willReturn(owner.getMemberships());
 
         assertThrows(DuplicatedMembershipException.class,
             () -> membershipService.save(request, owner.getUid()));
@@ -128,8 +155,7 @@ class MembershipServiceTest {
     void deactivate_MembershipExists_Success() {
         // given
         assertEquals(Status.Y, membership.getStatus());
-        given(membershipRepository.findByUid(membership.getUid()))
-            .willReturn(Optional.of(membership));
+        given(membershipRepository.findByUid(any())).willReturn(Optional.of(membership));
 
         // when
         boolean success = membershipService.deactivate(membership.getUid(), owner.getUid());
@@ -143,12 +169,10 @@ class MembershipServiceTest {
     @Test
     void deactivate_IsNotOwner_ExceptionThrown() {
         assertEquals(Status.Y, membership.getStatus());
-        given(membershipRepository.findByUid(membership.getUid()))
-            .willReturn(Optional.of(membership));
+        given(membershipRepository.findByUid(any())).willReturn(Optional.of(membership));
 
         assertThrows(PrincipalException.class,
-            () -> membershipService
-                .deactivate(membership.getUid(), owner.getUid() + owner.getUid()));
+            () -> membershipService.deactivate(membership.getUid(), "test2"));
     }
 
     @DisplayName("멤버십 적립")
@@ -156,12 +180,11 @@ class MembershipServiceTest {
     void spend_MembershipExists_Success() {
         // given
         MembershipUpdateRequest request = MembershipUpdateRequest.builder()
-            .membershipId(membership.getUid())
+            .uid(membership.getUid())
             .amount(100_000)
             .build();
         assertEquals(5210, membership.getPoint());
-        given(membershipRepository.findByUid(membership.getUid()))
-            .willReturn(Optional.of(membership));
+        given(membershipRepository.findByUid(any())).willReturn(Optional.of(membership));
 
         // when
         boolean success = membershipService.spend(request, owner.getUid());
@@ -175,12 +198,11 @@ class MembershipServiceTest {
     @Test
     void spend_IsNotOwner_ExceptionThrown() {
         MembershipUpdateRequest request = MembershipUpdateRequest.builder()
-            .membershipId(membership.getUid())
+            .uid(membership.getUid())
             .amount(100_000)
             .build();
         assertEquals(5210, membership.getPoint());
-        given(membershipRepository.findByUid(membership.getUid()))
-            .willReturn(Optional.of(membership));
+        given(membershipRepository.findByUid(any())).willReturn(Optional.of(membership));
 
         assertThrows(PrincipalException.class,
             () -> membershipService.spend(request, owner.getUid() + owner.getUid()));
@@ -190,20 +212,20 @@ class MembershipServiceTest {
     @Test
     void findOne_MembershipExists_Success() {
         // given
-        given(membershipRepository.findByUid(membership.getUid()))
-            .willReturn(Optional.of(membership));
+        given(membershipRepository.findByUid(any())).willReturn(Optional.of(membership));
 
         // when
-        Membership found = membershipService.findOne(membership.getUid());
+        MembershipResponse response = membershipService
+            .findOne(membership.getUid(), owner.getUid());
 
         // then
         assertAll(
-            () -> assertEquals(membership.getId(), found.getId()),
-            () -> assertEquals(membership.getUid(), found.getUid()),
-            () -> assertEquals(membership.getName(), found.getName()),
-            () -> assertEquals(membership.getStatus(), found.getStatus()),
-            () -> assertEquals(membership.getPoint(), found.getPoint()),
-            () -> assertEquals(membership.getOwner(), found.getOwner())
+            () -> assertEquals(1, response.getSeq()),
+            () -> assertEquals(membership.getUid(), response.getUid()),
+            () -> assertEquals(membership.getName().getValue(), response.getName()),
+            () -> assertEquals(membership.getStatus(), response.getStatus()),
+            () -> assertEquals(membership.getPoint(), response.getPoint()),
+            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
         );
     }
 }

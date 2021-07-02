@@ -1,4 +1,4 @@
-package com.kakao.payment.common;
+package com.kakao.payment.common.domain;
 
 import java.time.LocalDateTime;
 import javax.persistence.EntityListeners;

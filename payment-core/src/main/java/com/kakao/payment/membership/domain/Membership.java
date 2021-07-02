@@ -2,7 +2,7 @@ package com.kakao.payment.membership.domain;
 
 import static javax.persistence.FetchType.LAZY;
 
-import com.kakao.payment.common.BaseTimeEntity;
+import com.kakao.payment.common.domain.BaseTimeEntity;
 import com.kakao.payment.common.exception.IllegalParameterException;
 import com.kakao.payment.user.domain.User;
 import javax.persistence.Column;
