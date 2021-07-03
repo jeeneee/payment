@@ -18,6 +18,7 @@ import com.kakao.payment.membership.dto.MembershipUpdateRequest;
 import com.kakao.payment.membership.exception.DuplicatedMembershipException;
 import com.kakao.payment.user.domain.User;
 import com.kakao.payment.user.service.UserService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.util.Lists;
@@ -102,8 +103,7 @@ class MembershipServiceTest {
             .point(membership.getPoint())
             .build();
         given(membershipRepository.existsByUid(any())).willReturn(false);
-        given(userService.getUser(any())).willReturn(owner);
-        given(membershipRepository.findAllByOwner(any())).willReturn(owner.getMemberships());
+        given(userService.findUser(any())).willReturn(Optional.of(owner));
         given(membershipRepository.save(any(Membership.class))).willReturn(membership);
 
         // when
@@ -128,7 +128,9 @@ class MembershipServiceTest {
             .name(membership.getName().getValue())
             .point(membership.getPoint())
             .build();
+        owner.getMemberships().add(membership2);
         given(membershipRepository.existsByUid(any())).willReturn(true);
+        given(userService.findUser(any())).willReturn(Optional.empty());
 
         assertThrows(DuplicatedMembershipException.class,
             () -> membershipService.save(request, owner.getUid()));

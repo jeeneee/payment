@@ -2,9 +2,7 @@ package com.kakao.payment.membership.domain;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.kakao.payment.common.exception.IllegalParameterException;
 import com.kakao.payment.user.domain.User;
