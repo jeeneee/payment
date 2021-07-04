@@ -44,7 +44,7 @@ public class MembershipService {
     public MembershipResponse save(MembershipSaveRequest request, String ownerUid) {
         validateMembershipId(request.getUid());
         User owner = userService.findUser(ownerUid).orElseGet(() -> userService.save(ownerUid));
-        validateMembershipName(owner, request.getName());
+        validateMembershipName(owner, Name.find(request.getName()));
         Membership membership = request.toEntity(owner);
         membershipRepository.save(membership);
         return MembershipResponse.from(1, membership);
@@ -61,6 +61,9 @@ public class MembershipService {
     @Transactional
     public boolean spend(MembershipUpdateRequest request, String ownerUid) {
         Membership membership = getMembership(request.getUid());
+        if (membership.isDeactivated()) {
+            throw new MembershipNotFoundException("The membership already deactivated");
+        }
         verifyOwner(membership, ownerUid);
         membership.spend(request.getAmount());
         return true;
@@ -90,6 +93,6 @@ public class MembershipService {
     }
 
     private boolean isMembershipOwner(Membership membership, String ownerUid) {
-        return membership.getOwner().getUid().equals(ownerUid);
+        return membership.getOwnerUid().equals(ownerUid);
     }
 }

@@ -61,6 +61,14 @@ public class Membership extends BaseTimeEntity {
         }
     }
 
+    public String getOwnerUid() {
+        return this.owner.getUid();
+    }
+
+    public boolean isDeactivated() {
+        return status.equals(Status.N);
+    }
+
     public void deactivate() {
         this.status = Status.N;
     }

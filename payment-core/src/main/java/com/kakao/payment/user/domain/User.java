@@ -33,7 +33,7 @@ public class User extends BaseTimeEntity {
     private String uid;
 
     @OneToMany(mappedBy = "owner", cascade = ALL)
-    private List<Membership> memberships = new ArrayList<>();
+    private final List<Membership> memberships = new ArrayList<>();
 
     @Builder
     private User(Long id, String uid) {

@@ -18,10 +18,8 @@ import com.kakao.payment.membership.dto.MembershipUpdateRequest;
 import com.kakao.payment.membership.exception.DuplicatedMembershipException;
 import com.kakao.payment.user.domain.User;
 import com.kakao.payment.user.service.UserService;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,11 +70,10 @@ class MembershipServiceTest {
 
     @DisplayName("멤버십 전체 조회")
     @Test
-    void findAllByOwner_MembershipsExist_Success() {
+    void findAll_MembershipsExist_Success() {
         // given
-        List<Membership> memberships = Lists.list(membership);
+        owner.getMemberships().add(membership);
         given(userService.getUser(any())).willReturn(owner);
-        given(membershipRepository.findAllByOwner(any())).willReturn(memberships);
 
         // when
         List<MembershipResponse> responses = membershipService.findAll(owner.getUid());
@@ -89,7 +86,7 @@ class MembershipServiceTest {
             () -> assertEquals(membership.getName().getValue(), response.getName()),
             () -> assertEquals(membership.getStatus(), response.getStatus()),
             () -> assertEquals(membership.getPoint(), response.getPoint()),
-            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
+            () -> assertEquals(membership.getOwnerUid(), response.getOwnerUid())
         );
     }
 
@@ -116,7 +113,7 @@ class MembershipServiceTest {
             () -> assertEquals(membership.getName().getValue(), response.getName()),
             () -> assertEquals(membership.getStatus(), response.getStatus()),
             () -> assertEquals(membership.getPoint(), response.getPoint()),
-            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
+            () -> assertEquals(membership.getOwnerUid(), response.getOwnerUid())
         );
     }
 
@@ -128,9 +125,7 @@ class MembershipServiceTest {
             .name(membership.getName().getValue())
             .point(membership.getPoint())
             .build();
-        owner.getMemberships().add(membership2);
         given(membershipRepository.existsByUid(any())).willReturn(true);
-        given(userService.findUser(any())).willReturn(Optional.empty());
 
         assertThrows(DuplicatedMembershipException.class,
             () -> membershipService.save(request, owner.getUid()));
@@ -140,13 +135,13 @@ class MembershipServiceTest {
     @Test
     void save_OwnerHadSameNameMembership_ExceptionThrown() {
         MembershipSaveRequest request = MembershipSaveRequest.builder()
-            .uid(membership.getUid())
-            .name(membership.getName().getValue())
-            .point(membership.getPoint())
+            .uid(membership2.getUid())
+            .name(membership2.getName().getValue())
+            .point(membership2.getPoint())
             .build();
-        owner.getMemberships().add(membership2);
+        owner.getMemberships().add(membership);
         given(membershipRepository.existsByUid(any())).willReturn(false);
-        given(membershipRepository.findAllByOwner(any())).willReturn(owner.getMemberships());
+        given(userService.findUser(any())).willReturn(Optional.of(owner));
 
         assertThrows(DuplicatedMembershipException.class,
             () -> membershipService.save(request, owner.getUid()));
@@ -227,7 +222,7 @@ class MembershipServiceTest {
             () -> assertEquals(membership.getName().getValue(), response.getName()),
             () -> assertEquals(membership.getStatus(), response.getStatus()),
             () -> assertEquals(membership.getPoint(), response.getPoint()),
-            () -> assertEquals(membership.getOwner().getUid(), response.getOwnerUid())
+            () -> assertEquals(membership.getOwnerUid(), response.getOwnerUid())
         );
     }
 }

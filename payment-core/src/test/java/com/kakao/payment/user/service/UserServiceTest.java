@@ -38,7 +38,7 @@ class UserServiceTest {
 
     @DisplayName("유저 등록")
     @Test
-    void save_UnsavedUser_Success() {
+    void save_UnSavedUser_Success() {
         // given
         given(userRepository.save(any())).willReturn(user);
 
@@ -54,7 +54,7 @@ class UserServiceTest {
 
     @DisplayName("유저 조회")
     @Test
-    void findOne_SavedUser_FindUserSuccess() {
+    void getUser_SavedUser_FindUserSuccess() {
         // given
         given(userRepository.findByUid(any())).willReturn(Optional.of(user));
 
@@ -70,7 +70,7 @@ class UserServiceTest {
 
     @DisplayName("유저 조회 - 유저가 등록되지 않은 경우 예외가 발생한다.")
     @Test
-    void findOne_UnSavedUser_ExceptionThrown() {
+    void getUser_UnSavedUser_ExceptionThrown() {
         given(userRepository.findByUid(any())).willReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.getUser(user.getUid()));

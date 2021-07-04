@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@ToString
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -38,7 +40,7 @@ public class MembershipResponse {
         return MembershipResponse.builder()
             .seq(seq)
             .uid(membership.getUid())
-            .ownerUid(membership.getOwner().getUid())
+            .ownerUid(membership.getOwnerUid())
             .name(membership.getName().getValue())
             .startDate(membership.getCreatedDate())
             .status(membership.getStatus())

@@ -23,7 +23,7 @@ public class MembershipSaveRequest {
     @JsonProperty("membershipId")
     private String uid;
 
-    @NotBlank(message = "membership_id must be provided")
+    @NotBlank(message = "membership_name must be provided")
     @JsonProperty("membershipName")
     private String name;
 
@@ -34,13 +34,9 @@ public class MembershipSaveRequest {
         return Membership.builder()
             .uid(uid)
             .owner(owner)
-            .name(getName())
+            .name(Name.find(this.name))
             .status(Status.Y)
             .point(point)
             .build();
-    }
-
-    public Name getName() {
-        return Name.find(this.name);
     }
 }

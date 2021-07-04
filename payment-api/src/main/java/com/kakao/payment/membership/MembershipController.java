@@ -54,7 +54,8 @@ public class MembershipController {
     }
 
     @PutMapping("/point")
-    public ResponseEntity<CommonResponse> update(@RequestBody @Valid MembershipUpdateRequest request,
+    public ResponseEntity<CommonResponse> update(
+        @RequestBody @Valid MembershipUpdateRequest request,
         @RequestHeader("X-USER-ID") String ownerUid) {
         boolean response = membershipService.spend(request, ownerUid);
         return ResponseEntity.ok(new CommonResponse(true, response, null));

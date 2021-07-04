@@ -1,6 +1,7 @@
 package com.kakao.payment.membership.domain;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.kakao.payment.common.exception.IllegalParameterException;
 import java.util.stream.Stream;

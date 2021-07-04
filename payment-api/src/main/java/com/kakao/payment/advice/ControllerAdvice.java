@@ -6,9 +6,11 @@ import com.kakao.payment.exception.BadRequestException;
 import com.kakao.payment.exception.DuplicatedException;
 import com.kakao.payment.exception.NotFoundException;
 import java.util.Arrays;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,16 +20,27 @@ public class ControllerAdvice {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<CommonResponse> badRequestException(BadRequestException e) {
-        log.error("BadRequestException - {}", e.getMessage());
+        log.error("[BadRequestException] - {}", e.getMessage());
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
         CommonResponse response = new CommonResponse(false, null, error);
         return ResponseEntity.status(status).body(response);
     }
 
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<CommonResponse> badRequestException(BindException e) {
+        log.error("[BindException] - {}", e.getMessage());
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String message = Objects.requireNonNull(e.getBindingResult().getFieldError())
+            .getDefaultMessage();
+        ErrorResponse error = new ErrorResponse(message, status.value());
+        CommonResponse response = new CommonResponse(false, null, error);
+        return ResponseEntity.status(status).body(response);
+    }
+
     @ExceptionHandler(DuplicatedException.class)
     public ResponseEntity<CommonResponse> duplicatedException(DuplicatedException e) {
-        log.error("DuplicatedException - {}", e.getMessage());
+        log.error("[DuplicatedException] - {}", e.getMessage());
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
         CommonResponse response = new CommonResponse(false, null, error);
@@ -36,7 +49,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<CommonResponse> notFoundException(NotFoundException e) {
-        log.error("NotFoundException - {}", e.getMessage());
+        log.error("[NotFoundException] - {}", e.getMessage());
         HttpStatus status = HttpStatus.NOT_FOUND;
         ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
         CommonResponse response = new CommonResponse(false, null, error);
@@ -45,7 +58,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonResponse> exception(Exception e) {
-        log.error("Exception - {}", e.getMessage());
+        log.error("[Exception] - {}", e.getMessage());
         log.error(Arrays.toString(e.getStackTrace()));
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
