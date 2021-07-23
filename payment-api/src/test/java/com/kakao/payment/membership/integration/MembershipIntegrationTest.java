@@ -32,7 +32,6 @@ class MembershipIntegrationTest extends IntegrationTest {
             .getObject("response", MembershipResponse[].class)[0];
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
             () -> assertEquals("mem1", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(120, response.getPoint()),
@@ -58,7 +57,6 @@ class MembershipIntegrationTest extends IntegrationTest {
             .getObject("response", MembershipResponse.class);
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
             () -> assertEquals("mem2", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(5210, response.getPoint()),
@@ -87,7 +85,6 @@ class MembershipIntegrationTest extends IntegrationTest {
             .getObject("response", MembershipResponse.class);
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
             () -> assertEquals("mem4", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(120, response.getPoint()),

@@ -9,16 +9,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-@ToString
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MembershipResponse {
 
-    private int seq;
+    private Long seq;
 
     @JsonProperty("membershipId")
     private String uid;
@@ -36,9 +34,9 @@ public class MembershipResponse {
 
     private int point;
 
-    public static MembershipResponse from(int seq, Membership membership) {
+    public static MembershipResponse from(Membership membership) {
         return MembershipResponse.builder()
-            .seq(seq)
+            .seq(membership.getId())
             .uid(membership.getUid())
             .ownerUid(membership.getOwnerUid())
             .name(membership.getName().getValue())

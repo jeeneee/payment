@@ -108,7 +108,7 @@ class MembershipServiceTest {
 
         // then
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
+            () -> assertEquals(membership.getId(), response.getSeq()),
             () -> assertEquals(membership.getUid(), response.getUid()),
             () -> assertEquals(membership.getName().getValue(), response.getName()),
             () -> assertEquals(membership.getStatus(), response.getStatus()),

@@ -13,7 +13,6 @@ import com.kakao.payment.user.domain.User;
 import com.kakao.payment.user.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +28,14 @@ public class MembershipService {
     public MembershipResponse findOne(String uid, String ownerUid) {
         Membership membership = getMembership(uid);
         verifyOwner(membership, ownerUid);
-        return MembershipResponse.from(1, membership);
+        return MembershipResponse.from(membership);
     }
 
     public List<MembershipResponse> findAll(String ownerUid) {
         User owner = userService.getUser(ownerUid);
         List<Membership> memberships = owner.getMemberships();
-        return IntStream.range(0, memberships.size())
-            .mapToObj(i -> MembershipResponse.from(i + 1, memberships.get(i)))
+        return memberships.stream()
+            .map(MembershipResponse::from)
             .collect(Collectors.toList());
     }
 
@@ -45,9 +44,8 @@ public class MembershipService {
         validateMembershipId(request.getUid());
         User owner = userService.findUser(ownerUid).orElseGet(() -> userService.save(ownerUid));
         validateMembershipName(owner, Name.find(request.getName()));
-        Membership membership = request.toEntity(owner);
-        membershipRepository.save(membership);
-        return MembershipResponse.from(1, membership);
+        Membership membership = membershipRepository.save(request.toEntity(owner));
+        return MembershipResponse.from(membership);
     }
 
     @Transactional
