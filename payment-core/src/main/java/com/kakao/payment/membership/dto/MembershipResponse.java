@@ -3,6 +3,7 @@ package com.kakao.payment.membership.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakao.payment.membership.domain.Membership;
 import com.kakao.payment.membership.domain.Status;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MembershipResponse {
+public class MembershipResponse implements Serializable {
 
     private Long seq;
 

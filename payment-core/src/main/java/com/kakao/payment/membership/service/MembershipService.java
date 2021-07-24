@@ -14,6 +14,8 @@ import com.kakao.payment.user.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final UserService userService;
 
+    @Cacheable(value = "membership", key = "#uid")
     public MembershipResponse findOne(String uid, String ownerUid) {
         Membership membership = getMembership(uid);
         verifyOwner(membership, ownerUid);
@@ -49,14 +52,16 @@ public class MembershipService {
     }
 
     @Transactional
-    public boolean deactivate(String membershipUid, String ownerUid) {
-        Membership membership = getMembership(membershipUid);
+    @CacheEvict(value = "membership", key = "#uid")
+    public boolean deactivate(String uid, String ownerUid) {
+        Membership membership = getMembership(uid);
         verifyOwner(membership, ownerUid);
         membership.deactivate();
         return true;
     }
 
     @Transactional
+    @CacheEvict(value = "membership", key = "#request.uid")
     public boolean spend(MembershipUpdateRequest request, String ownerUid) {
         Membership membership = getMembership(request.getUid());
         if (membership.isDeactivated()) {
