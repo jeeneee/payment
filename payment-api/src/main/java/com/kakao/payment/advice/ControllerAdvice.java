@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -21,6 +22,16 @@ public class ControllerAdvice {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<CommonResponse> badRequestException(BadRequestException e) {
         log.error("[BadRequestException] - {}", e.getMessage());
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
+        CommonResponse response = new CommonResponse(false, null, error);
+        return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<CommonResponse> missingRequestHeaderException(
+        MissingRequestHeaderException e) {
+        log.error("[MissingRequestHeaderException] - {}", e.getMessage());
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ErrorResponse error = new ErrorResponse(e.getMessage(), status.value());
         CommonResponse response = new CommonResponse(false, null, error);
