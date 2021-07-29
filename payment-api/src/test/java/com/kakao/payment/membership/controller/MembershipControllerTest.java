@@ -59,7 +59,7 @@ class MembershipControllerTest extends MockMvcTest {
             .owner(owner)
             .build();
         List<MembershipResponse> membershipResponseList = Lists
-            .list(MembershipResponse.from(1, membership));
+            .list(MembershipResponse.from(membership));
 
         given(membershipService.findAll(any())).willReturn(membershipResponseList);
 
@@ -95,7 +95,7 @@ class MembershipControllerTest extends MockMvcTest {
             .build();
         String content = mapper.writeValueAsString(request);
         Membership membership = request.toEntity(owner);
-        MembershipResponse membershipResponse = MembershipResponse.from(1, membership);
+        MembershipResponse membershipResponse = MembershipResponse.from(membership);
 
         given(membershipService.save(any(MembershipSaveRequest.class), any()))
             .willReturn(membershipResponse);
@@ -112,7 +112,6 @@ class MembershipControllerTest extends MockMvcTest {
 
         assertAll(
             () -> assertTrue(success),
-            () -> assertEquals(1, response.getSeq()),
             () -> assertEquals(membership.getUid(), response.getUid()),
             () -> assertEquals(membership.getName().getValue(), response.getName()),
             () -> assertEquals(membership.getStatus(), response.getStatus()),
@@ -155,7 +154,7 @@ class MembershipControllerTest extends MockMvcTest {
             .point(120)
             .owner(owner)
             .build();
-        MembershipResponse membershipResponse = MembershipResponse.from(1, membership);
+        MembershipResponse membershipResponse = MembershipResponse.from(membership);
 
         given(membershipService.findOne(any(), any())).willReturn(membershipResponse);
 

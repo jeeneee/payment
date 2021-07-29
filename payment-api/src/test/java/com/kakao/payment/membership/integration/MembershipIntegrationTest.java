@@ -17,7 +17,10 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
+@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 class MembershipIntegrationTest extends IntegrationTest {
 
     @Autowired
@@ -26,14 +29,14 @@ class MembershipIntegrationTest extends IntegrationTest {
     @DisplayName("멤버십 전체 조회")
     @Test
     void findAll() throws JsonProcessingException {
-        createMembership("test1", "mem1");
+        createMembership();
         Response commonResponse = get("/api/v1/membership", "test1");
         MembershipResponse response = commonResponse.jsonPath()
             .getObject("response", MembershipResponse[].class)[0];
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
-            () -> assertEquals("mem1", response.getUid()),
+            () -> assertEquals(1L, response.getSeq()),
+            () -> assertEquals("happy", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(120, response.getPoint()),
             () -> assertNotNull(response.getStartDate()),
@@ -46,33 +49,33 @@ class MembershipIntegrationTest extends IntegrationTest {
     @Test
     void save() throws JsonProcessingException {
         MembershipSaveRequest request = MembershipSaveRequest.builder()
-            .uid("mem2")
+            .uid("happy")
             .name("happypoint")
             .point(5210)
             .build();
         String body = mapper.writeValueAsString(request);
 
-        Response commonResponse = post("/api/v1/membership", "test2", body);
+        Response commonResponse = post("/api/v1/membership", "test1", body);
 
         MembershipResponse response = commonResponse.jsonPath()
             .getObject("response", MembershipResponse.class);
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
-            () -> assertEquals("mem2", response.getUid()),
+            () -> assertEquals(1L, response.getSeq()),
+            () -> assertEquals("happy", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(5210, response.getPoint()),
             () -> assertNotNull(response.getStartDate()),
             () -> assertEquals(Status.Y, response.getStatus()),
-            () -> assertEquals("test2", response.getOwnerUid())
+            () -> assertEquals("test1", response.getOwnerUid())
         );
     }
 
     @DisplayName("멤버십 삭제")
     @Test
     void delete() throws JsonProcessingException {
-        createMembership("test3", "mem3");
-        Response commonResponse = delete("/api/v1/membership/" + "mem3", "test3");
+        createMembership();
+        Response commonResponse = delete("/api/v1/membership/" + "happy", "test1");
         Boolean response = commonResponse.jsonPath().getObject("response", Boolean.class);
 
         assertTrue(response);
@@ -81,46 +84,46 @@ class MembershipIntegrationTest extends IntegrationTest {
     @DisplayName("멤버십 상세 조회")
     @Test
     void findOne() throws JsonProcessingException {
-        createMembership("test4", "mem4");
-        Response commonResponse = get("/api/v1/membership/" + "mem4", "test4");
+        createMembership();
+        Response commonResponse = get("/api/v1/membership/" + "happy", "test1");
         MembershipResponse response = commonResponse.jsonPath()
             .getObject("response", MembershipResponse.class);
 
         assertAll(
-            () -> assertEquals(1, response.getSeq()),
-            () -> assertEquals("mem4", response.getUid()),
+            () -> assertEquals(1L, response.getSeq()),
+            () -> assertEquals("happy", response.getUid()),
             () -> assertEquals("happypoint", response.getName()),
             () -> assertEquals(120, response.getPoint()),
             () -> assertNotNull(response.getStartDate()),
             () -> assertEquals(Status.Y, response.getStatus()),
-            () -> assertEquals("test4", response.getOwnerUid())
+            () -> assertEquals("test1", response.getOwnerUid())
         );
     }
 
     @DisplayName("멤버십 포인트 적립")
     @Test
     void update() throws JsonProcessingException {
-        createMembership("test5", "mem5");
+        createMembership();
         MembershipUpdateRequest request = MembershipUpdateRequest.builder()
-            .uid("mem5")
+            .uid("happy")
             .amount(100)
             .build();
         String body = mapper.writeValueAsString(request);
 
-        Response commonResponse = put("/api/v1/membership/point", "test5", body);
+        Response commonResponse = put("/api/v1/membership/point", "test1", body);
         Boolean response = commonResponse.jsonPath().getObject("response", Boolean.class);
 
         assertTrue(response);
     }
 
-    private void createMembership(String userId, String membershipId)
+    private void createMembership()
         throws JsonProcessingException {
         MembershipSaveRequest request = MembershipSaveRequest.builder()
-            .uid(membershipId)
+            .uid("happy")
             .name(Name.SPC.getValue())
             .point(120)
             .build();
         String body = mapper.writeValueAsString(request);
-        post("/api/v1/membership", userId, body);
+        post("/api/v1/membership", "test1", body);
     }
 }

@@ -12,4 +12,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/payment
     username: root
-    password: wkddnwls1
+    password: password
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
